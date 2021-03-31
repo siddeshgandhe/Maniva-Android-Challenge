@@ -9,7 +9,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Maniva">
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".presentation.HomeActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".presentation.SplashActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
