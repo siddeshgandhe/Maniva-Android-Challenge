@@ -1,7 +1,11 @@
 package com.demo.maniva.presentation;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
@@ -27,6 +31,8 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
 import java.util.List;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+
 public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMapClickListener, PermissionsListener {
 
     private static final int REQUEST_CODE_AUTOCOMPLETE = 1;
@@ -44,14 +50,16 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Mapbox.getInstance(this, BuildConfig.PUBLIC_KEY);
         setContentView(R.layout.activity_home);
-        initMapView(savedInstanceState);
         mPermissionsManager = new PermissionsManager(this);
+        initMapView(savedInstanceState);
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
         mMapView.onResume();
+        checkGpsDeviceSettingEnabled();
     }
 
     @Override
@@ -193,4 +201,35 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         mButtonStartNavigation.setEnabled(false);
         mButtonStartNavigation.setBackgroundResource(R.color.mapboxGrayLight);
     }
+
+    private void showDialogGPS() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(false);
+        builder.setTitle(R.string.title_enable_location);
+        builder.setMessage(R.string.msg_enable_location);
+        builder.setInverseBackgroundForced(true);
+        builder.setPositiveButton(R.string.label_Enable, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+        });
+        builder.setCancelable(false);
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void checkGpsDeviceSettingEnabled() {
+        LocationManager mlocManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        boolean enabled = mlocManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (!enabled) {
+            showDialogGPS();
+        } else {
+            if (mMapboxMap != null) {
+                mMapboxManager.enableLocationComponent(mMapboxMap.getStyle());
+            }
+        }
+    }
+
 }

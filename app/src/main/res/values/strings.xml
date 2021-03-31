@@ -3,4 +3,7 @@
     <string name="user_location_permission_explanation">This app needs location permissions to show its functionality.</string>
     <string name="user_location_permission_not_granted">You didn\'t grant location permissions.</string>
     <string name="label_start_navigation">Start navigation</string>
+    <string name="title_enable_location">Enable GPS</string>
+    <string name="msg_enable_location">Please enable GPS</string>
+    <string name="label_Enable">Enable</string>
 </resources>

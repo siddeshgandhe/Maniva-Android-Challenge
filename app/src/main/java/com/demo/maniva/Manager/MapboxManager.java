@@ -1,5 +1,6 @@
 package com.demo.maniva.Manager;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +11,11 @@ import androidx.core.content.ContextCompat;
 
 import com.demo.maniva.BuildConfig;
 import com.demo.maniva.R;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineCallback;
+import com.mapbox.android.core.location.LocationEngineProvider;
+import com.mapbox.android.core.location.LocationEngineRequest;
+import com.mapbox.android.core.location.LocationEngineResult;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
@@ -22,7 +28,6 @@ import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
-import com.mapbox.mapboxsdk.location.LocationComponentOptions;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -41,6 +46,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static android.os.Looper.getMainLooper;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacement;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
@@ -59,6 +65,7 @@ public class MapboxManager {
     private final Context mContext;
     private final PermissionsManager mPermissionsManager;
 
+    private LocationEngine locationEngine;
     private NavigationMapRoute mNavigationMapRoute;
     private DirectionsRoute mCurrentRoute;
     private Point mOriginPoint;
@@ -87,61 +94,101 @@ public class MapboxManager {
     public void enableLocationComponent(@NonNull Style loadedMapStyle) {
         if (PermissionsManager.areLocationPermissionsGranted(mContext)) {
 
-            LocationComponentOptions locationComponentOptions = LocationComponentOptions.builder(mContext)
-                    .bearingTintColor(R.color.colorPrimary)
-                    .accuracyAlpha(1.0f)
-                    .build();
-
-            LocationComponentActivationOptions locationComponentActivationOptions = LocationComponentActivationOptions
-                    .builder(mContext, loadedMapStyle)
-                    .locationComponentOptions(locationComponentOptions)
-                    .build();
-
-
+            // Get an instance of the component
             LocationComponent locationComponent = mMapboxMap.getLocationComponent();
+
+            // Set the LocationComponent activation options
+            LocationComponentActivationOptions locationComponentActivationOptions =
+                    LocationComponentActivationOptions.builder(mContext, loadedMapStyle)
+                            .useDefaultLocationEngine(false)
+                            .build();
+
+            // Activate with the LocationComponentActivationOptions object
             locationComponent.activateLocationComponent(locationComponentActivationOptions);
+
+            // Enable to make component visible
             locationComponent.setLocationComponentEnabled(true);
+
+            // Set the component's camera mode
             locationComponent.setCameraMode(CameraMode.TRACKING);
+
+            // Set the component's render mode
             locationComponent.setRenderMode(RenderMode.COMPASS);
 
-            mOriginPoint = Point.fromLngLat(locationComponent.getLastKnownLocation().getLongitude(),
-                    locationComponent.getLastKnownLocation().getLatitude());
+            initLocationEngine();
+
 
         } else {
             mPermissionsManager.requestLocationPermissions((Activity) mContext);
         }
     }
 
-    public void getRoute(Point destination) {
-        NavigationRoute.builder(mContext)
-                .accessToken(Mapbox.getAccessToken())
-                .origin(mOriginPoint)
-                .destination(destination)
-                .build()
-                .getRoute(new Callback<DirectionsResponse>() {
-                    @Override
-                    public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
-                        // You can get the generic HTTP info about the response
-                        if (response.body() == null) {
-                            return;
-                        } else if (response.body().routes().size() < 1) {
-                            return;
-                        }
-                        mCurrentRoute = response.body().routes().get(0);
-                        // Draw the route on the map
-                        if (mNavigationMapRoute != null) {
-                            mNavigationMapRoute.updateRouteVisibilityTo(false);
-                            mNavigationMapRoute.updateRouteArrowVisibilityTo(false);
-                        } else {
-                            mNavigationMapRoute = new NavigationMapRoute(null, mMapView, mMapboxMap, R.style.NavigationMapRoute);
-                        }
-                        mNavigationMapRoute.addRoute(mCurrentRoute);
-                    }
+    @SuppressLint("MissingPermission")
+    private void initLocationEngine() {
+        locationEngine = LocationEngineProvider.getBestLocationEngine(mContext);
 
-                    @Override
-                    public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-                    }
-                });
+        LocationEngineRequest request = new LocationEngineRequest.Builder(1000)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxWaitTime(5000).build();
+
+        locationEngine.requestLocationUpdates(request, locationEngineCallback, getMainLooper());
+        locationEngine.getLastLocation(locationEngineCallback);
+    }
+
+    LocationEngineCallback<LocationEngineResult> locationEngineCallback = new LocationEngineCallback<LocationEngineResult>() {
+        @Override
+        public void onSuccess(LocationEngineResult result) {
+            if (mMapboxMap != null && result.getLastLocation() != null) {
+                mMapboxMap.getLocationComponent().forceLocationUpdate(result.getLastLocation());
+                mOriginPoint = Point.fromLngLat(result.getLastLocation().getLongitude(),
+                        result.getLastLocation().getLatitude());
+            }
+        }
+
+        @Override
+        public void onFailure(@NonNull Exception exception) {
+            /*TODO show toast*/
+        }
+    };
+
+
+    public void getRoute(Point destination) {
+        if (mOriginPoint != null) {
+            NavigationRoute.builder(mContext)
+                    .accessToken(Mapbox.getAccessToken())
+                    .origin(mOriginPoint)
+                    .destination(destination)
+                    .build()
+                    .getRoute(new Callback<DirectionsResponse>() {
+                        @Override
+                        public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
+                            // You can get the generic HTTP info about the response
+                            if (response.body() == null) {
+                                return;
+                            } else if (response.body().routes().size() < 1) {
+                                return;
+                            }
+                            mCurrentRoute = response.body().routes().get(0);
+                            // Draw the route on the map
+                            if (mNavigationMapRoute != null) {
+                                mNavigationMapRoute.updateRouteVisibilityTo(false);
+                                mNavigationMapRoute.updateRouteArrowVisibilityTo(false);
+                                mNavigationMapRoute.addRoute(mCurrentRoute);
+                            } else {
+                                try {
+                                    mNavigationMapRoute = new NavigationMapRoute(null, mMapView, mMapboxMap, R.style.NavigationMapRoute);
+                                    mNavigationMapRoute.addRoute(mCurrentRoute);
+                                } catch (Exception e) {
+
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
+                        }
+                    });
+        }
     }
 
     private void addDestinationIconSymbolLayer(@NonNull Style loadedMapStyle) {
