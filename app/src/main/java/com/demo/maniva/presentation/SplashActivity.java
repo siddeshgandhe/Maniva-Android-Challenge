@@ -11,7 +11,7 @@ import com.demo.maniva.R;
 
 public class SplashActivity extends AppCompatActivity {
 
-    public static int SPLASH_TIME_OUT = 1000;
+    public static int SPLASH_TIME_OUT = 2000;
     private final Runnable runnable = this::launchHomeScreen;
 
     @Override
