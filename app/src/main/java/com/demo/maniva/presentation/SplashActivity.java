@@ -38,8 +38,8 @@ public class SplashActivity extends AppCompatActivity {
 
     /*launch Home screen*/
     private void launchHomeScreen() {
-       /* startActivity(new Intent(this, HomeActivity.class));
-        finish();*/
+        startActivity(new Intent(this, HomeActivity.class));
+        finish();
     }
 
 }
