@@ -76,6 +76,7 @@ public class MapboxManager {
         this.mMapboxMap = mapboxMap;
         this.mContext = context;
         this.mMapView = mapView;
+        //TODO Move it here completely and callback to home
         this.mPermissionsManager = permissionsManager;
     }
 
@@ -148,7 +149,7 @@ public class MapboxManager {
 
         @Override
         public void onFailure(@NonNull Exception exception) {
-            /*TODO show toast*/
+            /*TODO send call back and show toast on activity*/
         }
     };
 
@@ -219,6 +220,7 @@ public class MapboxManager {
         ));
     }
 
+    /// TODO move to utilies
     public Intent getSearchIntent() {
         return new PlaceAutocomplete.IntentBuilder()
                 .accessToken(Mapbox.getAccessToken() != null ? Mapbox.getAccessToken() : BuildConfig.PUBLIC_KEY)
