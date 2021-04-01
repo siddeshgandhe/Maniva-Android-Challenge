@@ -14,8 +14,15 @@
         android:theme="@style/Theme.Maniva">
         <activity android:name=".presentation.NavigationActivity"
             android:screenOrientation="portrait"
+            android:configChanges=
+                "screenSize|smallestScreenSize|screenLayout|orientation"
+            android:supportsPictureInPicture="true"
             android:launchMode="singleTask"
-            android:supportsPictureInPicture="true"/>
+            android:taskAffinity=".YourVideoPlayerActivityTask"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:autoRemoveFromRecents="true"
+            />
         <activity
             android:name=".presentation.HomeActivity"
             android:screenOrientation="portrait" />

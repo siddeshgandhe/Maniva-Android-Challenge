@@ -252,7 +252,7 @@ public class MapboxManager implements PermissionsListener {
 
         @Override
         public void onFailure(@NonNull Exception exception) {
-            mMapboxListener.locationEngineError();
+            mMapboxListener.onLocationEngineError();
         }
     };
 

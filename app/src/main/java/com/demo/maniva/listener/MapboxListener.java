@@ -5,7 +5,7 @@ import java.util.List;
 public interface MapboxListener {
     void onPermissionDenied();
 
-    void locationEngineError();
+    void onLocationEngineError();
 
     void onRouteError();
 
