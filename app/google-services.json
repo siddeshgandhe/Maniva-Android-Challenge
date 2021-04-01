@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "117846455091",
+    "project_id": "maniva-65412",
+    "storage_bucket": "maniva-65412.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:117846455091:android:7b1db92d0ea9373da90446",
+        "android_client_info": {
+          "package_name": "com.demo.maniva"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "117846455091-8aejdo3tdae345745dvrugdk9ll81971.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbrDAzh8r-M3A_Q6mhs1uq-ArnLKlgJ-g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "117846455091-8aejdo3tdae345745dvrugdk9ll81971.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
