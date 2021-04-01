@@ -1,25 +1,24 @@
-package com.demo.maniva.Manager;
+package com.demo.maniva.manager;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
-import android.preference.PreferenceManager;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
-import com.demo.maniva.BuildConfig;
 import com.demo.maniva.R;
+import com.demo.maniva.listener.MapboxListener;
 import com.demo.maniva.presentation.NavigationActivity;
+import com.demo.maniva.utils.IntentUtil;
+import com.demo.maniva.utils.PreferenceUtil;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineCallback;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.location.LocationEngineRequest;
 import com.mapbox.android.core.location.LocationEngineResult;
+import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
@@ -37,13 +36,12 @@ import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.mapboxsdk.plugins.places.autocomplete.PlaceAutocomplete;
-import com.mapbox.mapboxsdk.plugins.places.autocomplete.model.PlaceOptions;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
-import com.mapbox.services.android.navigation.v5.navigation.NavigationConstants;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -55,7 +53,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacem
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
-public class MapboxManager {
+public class MapboxManager implements PermissionsListener {
 
     public static final String GEO_JSON_SOURCE_LAYER_ID = "geojsonSourceLayerId";
     public static final String DESTINATION_SYMBOL_LAYER_ID = "destination-symbol-layer-id";
@@ -68,18 +66,33 @@ public class MapboxManager {
     private final Context mContext;
     private final PermissionsManager mPermissionsManager;
 
-    private LocationEngine locationEngine;
     private NavigationMapRoute mNavigationMapRoute;
     private DirectionsRoute mCurrentRoute;
     private Point mOriginPoint;
 
+    private final MapboxListener mMapboxListener;
 
-    public MapboxManager(MapView mapView, MapboxMap mapboxMap, PermissionsManager permissionsManager, Context context) {
+
+    public MapboxManager(MapView mapView, MapboxMap mapboxMap, Context context, MapboxListener mapboxListener) {
         this.mMapboxMap = mapboxMap;
         this.mContext = context;
         this.mMapView = mapView;
-        //TODO Move it here completely and callback to home
-        this.mPermissionsManager = permissionsManager;
+        this.mMapboxListener = mapboxListener;
+        mPermissionsManager = new PermissionsManager(this);
+    }
+
+    @Override
+    public void onExplanationNeeded(List<String> permissionsToExplain) {
+        mMapboxListener.onExplanationNeeded(permissionsToExplain);
+    }
+
+    @Override
+    public void onPermissionResult(boolean granted) {
+        if (granted) {
+            enableLocationComponent();
+        } else {
+            mMapboxListener.onPermissionDenied();
+        }
     }
 
 
@@ -87,7 +100,7 @@ public class MapboxManager {
         mMapboxMap.getUiSettings().setZoomGesturesEnabled(true);
         mMapboxMap.getUiSettings().setQuickZoomGesturesEnabled(true);
         mMapboxMap.setStyle(mContext.getString(R.string.navigation_guidance_day), style -> {
-            enableLocationComponent(style);
+            enableLocationComponent();
             addDestinationIconSymbolLayer(style);
             setUpSource(style);
             setupLayer(style);
@@ -95,66 +108,39 @@ public class MapboxManager {
     }
 
     @SuppressWarnings({"MissingPermission"})
-    public void enableLocationComponent(@NonNull Style loadedMapStyle) {
-        if (PermissionsManager.areLocationPermissionsGranted(mContext)) {
+    public void enableLocationComponent() {
+        if (mMapboxMap != null) {
+            if (PermissionsManager.areLocationPermissionsGranted(mContext)) {
 
-            // Get an instance of the component
-            LocationComponent locationComponent = mMapboxMap.getLocationComponent();
+                // Get an instance of the component
+                LocationComponent locationComponent = mMapboxMap.getLocationComponent();
 
-            // Set the LocationComponent activation options
-            LocationComponentActivationOptions locationComponentActivationOptions =
-                    LocationComponentActivationOptions.builder(mContext, loadedMapStyle)
-                            .useDefaultLocationEngine(false)
-                            .build();
+                // Set the LocationComponent activation options
+                LocationComponentActivationOptions locationComponentActivationOptions =
+                        LocationComponentActivationOptions.builder(mContext, mMapboxMap.getStyle())
+                                .useDefaultLocationEngine(false)
+                                .build();
 
-            // Activate with the LocationComponentActivationOptions object
-            locationComponent.activateLocationComponent(locationComponentActivationOptions);
+                // Activate with the LocationComponentActivationOptions object
+                locationComponent.activateLocationComponent(locationComponentActivationOptions);
 
-            // Enable to make component visible
-            locationComponent.setLocationComponentEnabled(true);
+                // Enable to make component visible
+                locationComponent.setLocationComponentEnabled(true);
 
-            // Set the component's camera mode
-            locationComponent.setCameraMode(CameraMode.TRACKING);
+                // Set the component's camera mode
+                locationComponent.setCameraMode(CameraMode.TRACKING);
 
-            // Set the component's render mode
-            locationComponent.setRenderMode(RenderMode.COMPASS);
+                // Set the component's render mode
+                locationComponent.setRenderMode(RenderMode.COMPASS);
 
-            initLocationEngine();
+                initLocationEngine();
 
 
-        } else {
-            mPermissionsManager.requestLocationPermissions((Activity) mContext);
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    private void initLocationEngine() {
-        locationEngine = LocationEngineProvider.getBestLocationEngine(mContext);
-
-        LocationEngineRequest request = new LocationEngineRequest.Builder(1000)
-                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
-                .setMaxWaitTime(5000).build();
-
-        locationEngine.requestLocationUpdates(request, locationEngineCallback, getMainLooper());
-        locationEngine.getLastLocation(locationEngineCallback);
-    }
-
-    LocationEngineCallback<LocationEngineResult> locationEngineCallback = new LocationEngineCallback<LocationEngineResult>() {
-        @Override
-        public void onSuccess(LocationEngineResult result) {
-            if (mMapboxMap != null && result.getLastLocation() != null) {
-                mMapboxMap.getLocationComponent().forceLocationUpdate(result.getLastLocation());
-                mOriginPoint = Point.fromLngLat(result.getLastLocation().getLongitude(),
-                        result.getLastLocation().getLatitude());
+            } else {
+                mPermissionsManager.requestLocationPermissions((Activity) mContext);
             }
         }
-
-        @Override
-        public void onFailure(@NonNull Exception exception) {
-            /*TODO send call back and show toast on activity*/
-        }
-    };
-
+    }
 
     public void getRoute(Point destination) {
         if (mOriginPoint != null) {
@@ -183,17 +169,93 @@ public class MapboxManager {
                                     mNavigationMapRoute = new NavigationMapRoute(null, mMapView, mMapboxMap, R.style.NavigationMapRoute);
                                     mNavigationMapRoute.addRoute(mCurrentRoute);
                                 } catch (Exception e) {
-
+                                    mMapboxListener.onRouteError();
                                 }
                             }
                         }
 
                         @Override
                         public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
+                            mMapboxListener.onRouteError();
                         }
                     });
         }
     }
+
+    public void drawMarkerFromSelectedAddress(CarmenFeature selectedCarmenFeature, Point destinationPoint) {
+        Style style = mMapboxMap.getStyle();
+        if (style != null) {
+            // Move map camera to the selected location
+            mMapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                    new CameraPosition.Builder()
+                            .target(new LatLng(((Point) selectedCarmenFeature.geometry()).latitude(),
+                                    ((Point) selectedCarmenFeature.geometry()).longitude()))
+                            .zoom(14)
+                            .build()), 4000);
+
+            GeoJsonSource source = mMapboxMap.getStyle().getSourceAs(DESTINATION_SOURCE_ID);
+            if (source != null) {
+                source.setGeoJson(Feature.fromGeometry(destinationPoint));
+            }
+        }
+    }
+
+    public void resetMap() {
+        mNavigationMapRoute.updateRouteVisibilityTo(false);
+        mNavigationMapRoute.updateRouteArrowVisibilityTo(false);
+        mMapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                new CameraPosition.Builder()
+                        .target(new LatLng(mOriginPoint.latitude(),
+                                mOriginPoint.longitude()))
+                        .zoom(14)
+                        .build()), 4000);
+    }
+
+    public void startNavigation() {
+        Toast.makeText(mContext, R.string.msg_drive_mode, Toast.LENGTH_LONG).show();
+        PreferenceUtil.getInstance(mContext).setDirectionRoute(mCurrentRoute);
+        IntentUtil.launchActivityIntentForClass(mContext, NavigationActivity.class);
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        mPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    public void drawMarkerForDestination(Point mDestinationPoint) {
+        GeoJsonSource source = mMapboxMap.getStyle().getSourceAs(MapboxManager.DESTINATION_SOURCE_ID);
+        if (source != null) {
+            source.setGeoJson(Feature.fromGeometry(mDestinationPoint));
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void initLocationEngine() {
+        LocationEngine locationEngine = LocationEngineProvider.getBestLocationEngine(mContext);
+
+        LocationEngineRequest request = new LocationEngineRequest.Builder(1000)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxWaitTime(5000).build();
+
+        locationEngine.requestLocationUpdates(request, locationEngineCallback, getMainLooper());
+        locationEngine.getLastLocation(locationEngineCallback);
+    }
+
+    final LocationEngineCallback<LocationEngineResult> locationEngineCallback = new LocationEngineCallback<LocationEngineResult>() {
+        @Override
+        public void onSuccess(LocationEngineResult result) {
+            if (mMapboxMap != null && result.getLastLocation() != null) {
+                mMapboxMap.getLocationComponent().forceLocationUpdate(result.getLastLocation());
+                mOriginPoint = Point.fromLngLat(result.getLastLocation().getLongitude(),
+                        result.getLastLocation().getLatitude());
+            }
+        }
+
+        @Override
+        public void onFailure(@NonNull Exception exception) {
+            mMapboxListener.locationEngineError();
+        }
+    };
+
 
     private void addDestinationIconSymbolLayer(@NonNull Style loadedMapStyle) {
         loadedMapStyle.addImage(DESTINATION_ICON_ID,
@@ -220,64 +282,5 @@ public class MapboxManager {
                 iconImage(symbolIconId),
                 iconOffset(new Float[]{0f, -8f})
         ));
-    }
-
-    /// TODO move to utilies
-    public Intent getSearchIntent() {
-        return new PlaceAutocomplete.IntentBuilder()
-                .accessToken(Mapbox.getAccessToken() != null ? Mapbox.getAccessToken() : BuildConfig.PUBLIC_KEY)
-                .placeOptions(PlaceOptions.builder()
-                        .backgroundColor(ContextCompat.getColor(mContext, R.color.mapboxWhite))
-                        .limit(10)
-                        .build(PlaceOptions.MODE_CARDS))
-                .build((Activity) mContext);
-    }
-
-    public void drawMarkerFromSelectedAddress(CarmenFeature selectedCarmenFeature, Point destinationPoint) {
-        Style style = mMapboxMap.getStyle();
-        if (style != null) {
-            // Move map camera to the selected location
-            mMapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                    new CameraPosition.Builder()
-                            .target(new LatLng(((Point) selectedCarmenFeature.geometry()).latitude(),
-                                    ((Point) selectedCarmenFeature.geometry()).longitude()))
-                            .zoom(14)
-                            .build()), 4000);
-
-
-            GeoJsonSource source = mMapboxMap.getStyle().getSourceAs(DESTINATION_SOURCE_ID);
-            if (source != null) {
-                source.setGeoJson(Feature.fromGeometry(destinationPoint));
-            }
-
-
-        }
-    }
-
-    public void resetMap() {
-        mNavigationMapRoute.updateRouteVisibilityTo(false);
-        mNavigationMapRoute.updateRouteArrowVisibilityTo(false);
-        mMapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                new CameraPosition.Builder()
-                        .target(new LatLng(mOriginPoint.latitude(),
-                                mOriginPoint.longitude()))
-                        .zoom(14)
-                        .build()), 4000);
-    }
-
-    public void startNavigation() {
-        Toast.makeText(mContext, R.string.msg_drive_mode, Toast.LENGTH_LONG).show();
-        storeDirectionsRouteValue();
-        Intent navigationIntent = new Intent(mContext, NavigationActivity.class);
-        mContext.startActivity(navigationIntent);
-    }
-
-    /*TODO Put in Pref util*/
-    private void storeDirectionsRouteValue() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(NavigationConstants.NAVIGATION_VIEW_ROUTE_KEY, mCurrentRoute.toJson());
-        editor.apply();
-        editor.commit();
     }
 }

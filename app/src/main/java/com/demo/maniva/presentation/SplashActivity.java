@@ -1,6 +1,5 @@
 package com.demo.maniva.presentation;
 
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,10 +11,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.demo.maniva.R;
+import com.demo.maniva.utils.IntentUtil;
 
 public class SplashActivity extends AppCompatActivity {
 
-    public static int SPLASH_TIME_OUT = 2000;
+    public static final int SPLASH_TIME_OUT = 2000;
     private final static int REQUEST_CODE_ASK_PERMISSIONS = 1002;
     private final Runnable runnable = this::checkPermissionForNetworkState;
 
@@ -27,6 +27,23 @@ public class SplashActivity extends AppCompatActivity {
         createSplashTimer();
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_PERMISSIONS:
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, R.string.err_permission_denied, Toast.LENGTH_LONG).show();
+                    finish();
+                } else {
+                    launchHomeActivity();
+                }
+                break;
+
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
 
     private void createSplashScreenAppearance() {
         // Hide the status bar.
@@ -58,27 +75,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void launchHomeActivity() {
-        startActivity(new Intent(this, HomeActivity.class));
+        IntentUtil.launchActivityIntentForClass(this, HomeActivity.class);
         finish();
     }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_CODE_ASK_PERMISSIONS:
-                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, R.string.err_permission_denied, Toast.LENGTH_LONG).show();
-                    finish();
-                } else {
-                    launchHomeActivity();
-                }
-                break;
-
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
-
-
 }

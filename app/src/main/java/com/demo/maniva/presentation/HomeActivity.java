@@ -3,7 +3,6 @@ package com.demo.maniva.presentation;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -15,12 +14,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.demo.maniva.BuildConfig;
-import com.demo.maniva.Manager.MapboxManager;
 import com.demo.maniva.R;
+import com.demo.maniva.listener.MapboxListener;
+import com.demo.maniva.manager.MapboxManager;
+import com.demo.maniva.utils.IntentUtil;
 import com.mapbox.android.core.permissions.PermissionsListener;
-import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.api.geocoding.v5.models.CarmenFeature;
-import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -28,19 +27,16 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.plugins.places.autocomplete.PlaceAutocomplete;
-import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-
-public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMapClickListener, PermissionsListener {
+public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMapClickListener, MapboxListener {
 
     private static final int REQUEST_CODE_AUTOCOMPLETE = 1;
 
     private MapView mMapView;
-    private MapboxMap mMapboxMap;
-    private PermissionsManager mPermissionsManager;
     private Button mButtonStartNavigation;
     private Point mDestinationPoint;
     private MapboxManager mMapboxManager;
@@ -53,7 +49,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Mapbox.getInstance(this, BuildConfig.PUBLIC_KEY);
         setContentView(R.layout.activity_home);
-        mPermissionsManager = new PermissionsManager(this);
         initMapView(savedInstanceState);
 
     }
@@ -115,14 +110,14 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NotNull Bundle outState) {
         super.onSaveInstanceState(outState);
         mMapView.onSaveInstanceState(outState);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        mPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        mMapboxManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
@@ -132,25 +127,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     @Override
-    public void onPermissionResult(boolean granted) {
-        if (granted) {
-            mMapboxManager.enableLocationComponent(mMapboxMap.getStyle());
-        } else {
-            Toast.makeText(this, R.string.user_location_permission_not_granted, Toast.LENGTH_LONG).show();
-            finish();
-        }
-    }
-
-    @Override
     public void onMapReady(@NonNull final MapboxMap mapboxMap) {
-        this.mMapboxMap = mapboxMap;
-        mMapboxManager = new MapboxManager(mMapView, mapboxMap, mPermissionsManager, this);
+        mMapboxManager = new MapboxManager(mMapView, mapboxMap, this, this);
         mMapboxManager.initMapbox();
         mapboxMap.addOnMapClickListener(HomeActivity.this);
         mButtonStartNavigation = findViewById(R.id.startButton);
-        mButtonStartNavigation.setOnClickListener(v -> {
-            mMapboxManager.startNavigation();
-        });
+        mButtonStartNavigation.setOnClickListener(v -> mMapboxManager.startNavigation());
 
         initSearchFab();
     }
@@ -160,12 +142,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onMapClick(@NonNull LatLng point) {
 
         mDestinationPoint = Point.fromLngLat(point.getLongitude(), point.getLatitude());
-
-        GeoJsonSource source = mMapboxMap.getStyle().getSourceAs(MapboxManager.DESTINATION_SOURCE_ID);
-        if (source != null) {
-            source.setGeoJson(Feature.fromGeometry(mDestinationPoint));
-        }
-
+        mMapboxManager.drawMarkerForDestination(mDestinationPoint);
         mMapboxManager.getRoute(mDestinationPoint);
         mButtonStartNavigation.setEnabled(true);
         mButtonStartNavigation.setBackgroundResource(R.color.mapboxBlue);
@@ -183,15 +160,29 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             // Create a new FeatureCollection and add a new Feature to it using selectedCarmenFeature above.
             // Then retrieve and update the source designated for showing a selected location's symbol layer icon
-            if (mMapboxMap != null) {
-                mDestinationPoint = Point.fromLngLat(((Point) selectedCarmenFeature.geometry()).longitude(), ((Point) selectedCarmenFeature.geometry()).latitude());
-                mMapboxManager.drawMarkerFromSelectedAddress(selectedCarmenFeature, mDestinationPoint);
-                mMapboxManager.getRoute(mDestinationPoint);
-                mButtonStartNavigation.setEnabled(true);
-                mButtonStartNavigation.setBackgroundResource(R.color.mapboxBlue);
+            mDestinationPoint = Point.fromLngLat(((Point) selectedCarmenFeature.geometry()).longitude(), ((Point) selectedCarmenFeature.geometry()).latitude());
+            mMapboxManager.drawMarkerFromSelectedAddress(selectedCarmenFeature, mDestinationPoint);
+            mMapboxManager.getRoute(mDestinationPoint);
+            mButtonStartNavigation.setEnabled(true);
+            mButtonStartNavigation.setBackgroundResource(R.color.mapboxBlue);
 
-            }
         }
+    }
+
+    @Override
+    public void onPermissionDenied() {
+        Toast.makeText(this, R.string.user_location_permission_not_granted, Toast.LENGTH_LONG).show();
+        finish();
+    }
+
+    @Override
+    public void locationEngineError() {
+        Toast.makeText(this, R.string.error_location_not_found, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onRouteError() {
+        Toast.makeText(this, R.string.err_route_not_found, Toast.LENGTH_LONG).show();
     }
 
     private void initMapView(Bundle savedInstanceState) {
@@ -201,12 +192,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void initSearchFab() {
-        findViewById(R.id.fab_location_search).setOnClickListener(view -> {
-            startActivityForResult(mMapboxManager.getSearchIntent(), REQUEST_CODE_AUTOCOMPLETE);
-        });
+        findViewById(R.id.fab_location_search).setOnClickListener(view -> startActivityForResult(IntentUtil.getMapboxAutoCompleteSearchIntent(this), REQUEST_CODE_AUTOCOMPLETE));
     }
 
-    void resetButton() {
+    private void resetButton() {
         mButtonStartNavigation.setEnabled(false);
         mButtonStartNavigation.setBackgroundResource(R.color.mapboxGrayLight);
     }
@@ -217,13 +206,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         builder.setTitle(R.string.title_enable_location);
         builder.setMessage(R.string.msg_enable_location);
         builder.setInverseBackgroundForced(true);
-        builder.setPositiveButton(R.string.label_Enable, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                Intent intent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            }
-        });
+        builder.setPositiveButton(R.string.label_Enable, (dialog, which) -> IntentUtil.launchActivityForAction(HomeActivity.this, android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
         builder.setCancelable(false);
         AlertDialog alert = builder.create();
         alert.show();
@@ -235,10 +218,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!enabled) {
             showDialogGPS();
         } else {
-            if (mMapboxMap != null) {
-                mMapboxManager.enableLocationComponent(mMapboxMap.getStyle());
+            if (mMapboxManager != null) {
+                mMapboxManager.enableLocationComponent();
             }
+
         }
     }
+
 
 }
