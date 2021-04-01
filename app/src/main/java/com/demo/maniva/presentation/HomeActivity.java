@@ -175,13 +175,15 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void locationEngineError() {
+    public void onLocationEngineError() {
         Toast.makeText(this, R.string.error_location_not_found, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onRouteError() {
         Toast.makeText(this, R.string.err_route_not_found, Toast.LENGTH_LONG).show();
+        mButtonStartNavigation.setEnabled(false);
+        mButtonStartNavigation.setBackgroundResource(R.color.mapboxGrayLight);
     }
 
     private void initMapView(Bundle savedInstanceState) {
@@ -213,7 +215,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void checkGpsDeviceSettingEnabled() {
         LocationManager mlocManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        boolean enabled = mlocManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean enabled = mlocManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || mlocManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ||
+                mlocManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER);
         if (!enabled) {
             showDialogGPS();
         } else {
