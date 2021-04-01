@@ -26,83 +26,83 @@ import com.mapbox.services.android.navigation.v5.navigation.NavigationConstants;
 public class NavigationActivity extends AppCompatActivity implements OnNavigationReadyCallback,
         NavigationListener {
 
-    private NavigationView navigationView;
-    private DirectionsRoute route;
+    private NavigationView mNavigationView;
+    private DirectionsRoute mRoute;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setTheme(R.style.Theme_AppCompat_NoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
-        navigationView = findViewById(R.id.navigationView);
-        navigationView.onCreate(savedInstanceState);
+        mNavigationView = findViewById(R.id.navigationView);
+        mNavigationView.onCreate(savedInstanceState);
         initialize();
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        navigationView.onStart();
+        mNavigationView.onStart();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        navigationView.onResume();
+        mNavigationView.onResume();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        navigationView.onLowMemory();
+        mNavigationView.onLowMemory();
     }
 
     @Override
     public void onBackPressed() {
         // If the navigation view didn't need to do anything, call super
-        if (!navigationView.onBackPressed()) {
+        if (!mNavigationView.onBackPressed()) {
             super.onBackPressed();
         }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        navigationView.onSaveInstanceState(outState);
+        mNavigationView.onSaveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        navigationView.onRestoreInstanceState(savedInstanceState);
+        mNavigationView.onRestoreInstanceState(savedInstanceState);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        navigationView.onPause();
+        mNavigationView.onPause();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        navigationView.onStop();
+        mNavigationView.onStop();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        navigationView.onDestroy();
+        mNavigationView.onDestroy();
     }
 
     @Override
     public void onNavigationReady(boolean isRunning) {
         NavigationViewOptions.Builder options = NavigationViewOptions.builder();
         options.navigationListener(this);
-        options.directionsRoute(route);
+        options.directionsRoute(mRoute);
         options.shouldSimulateRoute(true);
         options.navigationOptions(MapboxNavigationOptions.builder().build());
-        navigationView.startNavigation(options.build());
+        mNavigationView.startNavigation(options.build());
     }
 
     @Override
@@ -152,8 +152,8 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     private void initialize() {
-        this.route = extractRoute();
-        navigationView.initialize(this);
+        this.mRoute = extractRoute();
+        mNavigationView.initialize(this);
     }
 
 
