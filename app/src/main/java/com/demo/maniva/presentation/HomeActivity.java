@@ -18,7 +18,6 @@ import com.demo.maniva.R;
 import com.demo.maniva.listener.MapboxListener;
 import com.demo.maniva.manager.MapboxManager;
 import com.demo.maniva.utils.IntentUtil;
-import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.api.geocoding.v5.models.CarmenFeature;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
