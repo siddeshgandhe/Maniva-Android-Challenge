@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -265,6 +266,7 @@ public class MapboxManager {
     }
 
     public void startNavigation() {
+        Toast.makeText(mContext, R.string.msg_drive_mode, Toast.LENGTH_LONG).show();
         storeDirectionsRouteValue();
         Intent navigationIntent = new Intent(mContext, NavigationActivity.class);
         mContext.startActivity(navigationIntent);
