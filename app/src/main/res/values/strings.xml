@@ -7,4 +7,5 @@
     <string name="msg_enable_location">Please enable GPS</string>
     <string name="label_Enable">Enable</string>
     <string name="err_permission_denied">READ_PHONE_STATE Permission Denied</string>
+    <string name="msg_back_again_to_exit">Please click BACK again to exit.</string>
 </resources>
