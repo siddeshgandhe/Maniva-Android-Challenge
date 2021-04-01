@@ -195,7 +195,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         findViewById(R.id.fab_location_search).setOnClickListener(view -> startActivityForResult(IntentUtil.getMapboxAutoCompleteSearchIntent(this), REQUEST_CODE_AUTOCOMPLETE));
     }
 
-    void resetButton() {
+    private void resetButton() {
         mButtonStartNavigation.setEnabled(false);
         mButtonStartNavigation.setBackgroundResource(R.color.mapboxGrayLight);
     }

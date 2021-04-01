@@ -27,6 +27,23 @@ public class SplashActivity extends AppCompatActivity {
         createSplashTimer();
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_PERMISSIONS:
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, R.string.err_permission_denied, Toast.LENGTH_LONG).show();
+                    finish();
+                } else {
+                    launchHomeActivity();
+                }
+                break;
+
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
 
     private void createSplashScreenAppearance() {
         // Hide the status bar.
@@ -61,24 +78,4 @@ public class SplashActivity extends AppCompatActivity {
         IntentUtil.launchActivityIntentForClass(this, HomeActivity.class);
         finish();
     }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_CODE_ASK_PERMISSIONS:
-                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, R.string.err_permission_denied, Toast.LENGTH_LONG).show();
-                    finish();
-                } else {
-                    launchHomeActivity();
-                }
-                break;
-
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
-
-
 }

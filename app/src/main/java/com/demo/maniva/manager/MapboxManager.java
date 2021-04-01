@@ -142,34 +142,6 @@ public class MapboxManager implements PermissionsListener {
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private void initLocationEngine() {
-        LocationEngine locationEngine = LocationEngineProvider.getBestLocationEngine(mContext);
-
-        LocationEngineRequest request = new LocationEngineRequest.Builder(1000)
-                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
-                .setMaxWaitTime(5000).build();
-
-        locationEngine.requestLocationUpdates(request, locationEngineCallback, getMainLooper());
-        locationEngine.getLastLocation(locationEngineCallback);
-    }
-
-    final LocationEngineCallback<LocationEngineResult> locationEngineCallback = new LocationEngineCallback<LocationEngineResult>() {
-        @Override
-        public void onSuccess(LocationEngineResult result) {
-            if (mMapboxMap != null && result.getLastLocation() != null) {
-                mMapboxMap.getLocationComponent().forceLocationUpdate(result.getLastLocation());
-                mOriginPoint = Point.fromLngLat(result.getLastLocation().getLongitude(),
-                        result.getLastLocation().getLatitude());
-            }
-        }
-
-        @Override
-        public void onFailure(@NonNull Exception exception) {
-            mMapboxListener.locationEngineError();
-        }
-    };
-
     public void getRoute(Point destination) {
         if (mOriginPoint != null) {
             NavigationRoute.builder(mContext)
@@ -208,33 +180,6 @@ public class MapboxManager implements PermissionsListener {
                         }
                     });
         }
-    }
-
-    private void addDestinationIconSymbolLayer(@NonNull Style loadedMapStyle) {
-        loadedMapStyle.addImage(DESTINATION_ICON_ID,
-                BitmapFactory.decodeResource(mContext.getResources(), R.drawable.mapbox_marker_icon_default));
-        GeoJsonSource geoJsonSource = new GeoJsonSource(DESTINATION_SOURCE_ID);
-        loadedMapStyle.addSource(geoJsonSource);
-        SymbolLayer destinationSymbolLayer = new SymbolLayer(DESTINATION_SYMBOL_LAYER_ID, DESTINATION_SOURCE_ID);
-        destinationSymbolLayer.withProperties(
-                iconImage(DESTINATION_ICON_ID),
-                iconAllowOverlap(true),
-                iconIgnorePlacement(true)
-        );
-        loadedMapStyle.addLayer(destinationSymbolLayer);
-    }
-
-
-    private void setUpSource(@NonNull Style loadedMapStyle) {
-        loadedMapStyle.addSource(new GeoJsonSource(GEO_JSON_SOURCE_LAYER_ID));
-    }
-
-    private void setupLayer(@NonNull Style loadedMapStyle) {
-        String symbolIconId = "symbolIconId";
-        loadedMapStyle.addLayer(new SymbolLayer(SYMBOL_LAYER_ID, GEO_JSON_SOURCE_LAYER_ID).withProperties(
-                iconImage(symbolIconId),
-                iconOffset(new Float[]{0f, -8f})
-        ));
     }
 
     public void drawMarkerFromSelectedAddress(CarmenFeature selectedCarmenFeature, Point destinationPoint) {
@@ -281,5 +226,61 @@ public class MapboxManager implements PermissionsListener {
         if (source != null) {
             source.setGeoJson(Feature.fromGeometry(mDestinationPoint));
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void initLocationEngine() {
+        LocationEngine locationEngine = LocationEngineProvider.getBestLocationEngine(mContext);
+
+        LocationEngineRequest request = new LocationEngineRequest.Builder(1000)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxWaitTime(5000).build();
+
+        locationEngine.requestLocationUpdates(request, locationEngineCallback, getMainLooper());
+        locationEngine.getLastLocation(locationEngineCallback);
+    }
+
+    final LocationEngineCallback<LocationEngineResult> locationEngineCallback = new LocationEngineCallback<LocationEngineResult>() {
+        @Override
+        public void onSuccess(LocationEngineResult result) {
+            if (mMapboxMap != null && result.getLastLocation() != null) {
+                mMapboxMap.getLocationComponent().forceLocationUpdate(result.getLastLocation());
+                mOriginPoint = Point.fromLngLat(result.getLastLocation().getLongitude(),
+                        result.getLastLocation().getLatitude());
+            }
+        }
+
+        @Override
+        public void onFailure(@NonNull Exception exception) {
+            mMapboxListener.locationEngineError();
+        }
+    };
+
+
+    private void addDestinationIconSymbolLayer(@NonNull Style loadedMapStyle) {
+        loadedMapStyle.addImage(DESTINATION_ICON_ID,
+                BitmapFactory.decodeResource(mContext.getResources(), R.drawable.mapbox_marker_icon_default));
+        GeoJsonSource geoJsonSource = new GeoJsonSource(DESTINATION_SOURCE_ID);
+        loadedMapStyle.addSource(geoJsonSource);
+        SymbolLayer destinationSymbolLayer = new SymbolLayer(DESTINATION_SYMBOL_LAYER_ID, DESTINATION_SOURCE_ID);
+        destinationSymbolLayer.withProperties(
+                iconImage(DESTINATION_ICON_ID),
+                iconAllowOverlap(true),
+                iconIgnorePlacement(true)
+        );
+        loadedMapStyle.addLayer(destinationSymbolLayer);
+    }
+
+
+    private void setUpSource(@NonNull Style loadedMapStyle) {
+        loadedMapStyle.addSource(new GeoJsonSource(GEO_JSON_SOURCE_LAYER_ID));
+    }
+
+    private void setupLayer(@NonNull Style loadedMapStyle) {
+        String symbolIconId = "symbolIconId";
+        loadedMapStyle.addLayer(new SymbolLayer(SYMBOL_LAYER_ID, GEO_JSON_SOURCE_LAYER_ID).withProperties(
+                iconImage(symbolIconId),
+                iconOffset(new Float[]{0f, -8f})
+        ));
     }
 }
