@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.demo.maniva.BuildConfig;
 import com.demo.maniva.Manager.MapboxManager;
 import com.demo.maniva.R;
+import com.demo.maniva.utils.IntentUtil;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.api.geocoding.v5.models.CarmenFeature;
@@ -202,7 +203,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void initSearchFab() {
         findViewById(R.id.fab_location_search).setOnClickListener(view -> {
-            startActivityForResult(mMapboxManager.getSearchIntent(), REQUEST_CODE_AUTOCOMPLETE);
+            startActivityForResult(IntentUtil.getMapboxAutoCompleteSearchIntent(this), REQUEST_CODE_AUTOCOMPLETE);
         });
     }
 
@@ -219,9 +220,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         builder.setInverseBackgroundForced(true);
         builder.setPositiveButton(R.string.label_Enable, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                Intent intent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                IntentUtil.launchActivityForAction(HomeActivity.this, android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             }
         });
         builder.setCancelable(false);

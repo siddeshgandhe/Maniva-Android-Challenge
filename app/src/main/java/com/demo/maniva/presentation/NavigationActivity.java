@@ -2,11 +2,9 @@ package com.demo.maniva.presentation;
 
 
 import android.app.PictureInPictureParams;
-import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Rational;
 import android.view.Display;
 
@@ -14,13 +12,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.demo.maniva.R;
+import com.demo.maniva.utils.PreferenceUtil;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.services.android.navigation.ui.v5.NavigationView;
 import com.mapbox.services.android.navigation.ui.v5.NavigationViewOptions;
 import com.mapbox.services.android.navigation.ui.v5.OnNavigationReadyCallback;
 import com.mapbox.services.android.navigation.ui.v5.listeners.NavigationListener;
 import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigationOptions;
-import com.mapbox.services.android.navigation.v5.navigation.NavigationConstants;
 
 
 public class NavigationActivity extends AppCompatActivity implements OnNavigationReadyCallback,
@@ -141,7 +139,6 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode);
 
-
         if (isInPictureInPictureMode && getSupportActionBar() != null) {
             getSupportActionBar().hide();
         } else {
@@ -152,19 +149,13 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     private void initialize() {
-        this.mRoute = extractRoute();
+        this.mRoute = PreferenceUtil.getInstance(this).getDirectionRoute();
+        PreferenceUtil.getInstance(this).setDirectionRoute(null);
         mNavigationView.initialize(this);
     }
-
 
     private void finishNavigation() {
         finish();
     }
 
-    private DirectionsRoute extractRoute() {
-        //TODO move to pref util
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String directionsRouteJson = preferences.getString(NavigationConstants.NAVIGATION_VIEW_ROUTE_KEY, "");
-        return DirectionsRoute.fromJson(directionsRouteJson);
-    }
 }

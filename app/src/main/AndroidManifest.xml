@@ -14,6 +14,7 @@
         android:theme="@style/Theme.Maniva">
         <activity android:name=".presentation.NavigationActivity"
             android:screenOrientation="portrait"
+            android:launchMode="singleTask"
             android:supportsPictureInPicture="true"/>
         <activity
             android:name=".presentation.HomeActivity"

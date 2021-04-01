@@ -3,18 +3,15 @@ package com.demo.maniva.Manager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
-import android.preference.PreferenceManager;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
-import com.demo.maniva.BuildConfig;
 import com.demo.maniva.R;
 import com.demo.maniva.presentation.NavigationActivity;
+import com.demo.maniva.utils.IntentUtil;
+import com.demo.maniva.utils.PreferenceUtil;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineCallback;
 import com.mapbox.android.core.location.LocationEngineProvider;
@@ -37,12 +34,9 @@ import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.mapboxsdk.plugins.places.autocomplete.PlaceAutocomplete;
-import com.mapbox.mapboxsdk.plugins.places.autocomplete.model.PlaceOptions;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
-import com.mapbox.services.android.navigation.v5.navigation.NavigationConstants;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 
 import retrofit2.Call;
@@ -155,7 +149,6 @@ public class MapboxManager {
         }
     };
 
-
     public void getRoute(Point destination) {
         if (mOriginPoint != null) {
             NavigationRoute.builder(mContext)
@@ -222,17 +215,6 @@ public class MapboxManager {
         ));
     }
 
-    /// TODO move to utilies
-    public Intent getSearchIntent() {
-        return new PlaceAutocomplete.IntentBuilder()
-                .accessToken(Mapbox.getAccessToken() != null ? Mapbox.getAccessToken() : BuildConfig.PUBLIC_KEY)
-                .placeOptions(PlaceOptions.builder()
-                        .backgroundColor(ContextCompat.getColor(mContext, R.color.mapboxWhite))
-                        .limit(10)
-                        .build(PlaceOptions.MODE_CARDS))
-                .build((Activity) mContext);
-    }
-
     public void drawMarkerFromSelectedAddress(CarmenFeature selectedCarmenFeature, Point destinationPoint) {
         Style style = mMapboxMap.getStyle();
         if (style != null) {
@@ -244,13 +226,10 @@ public class MapboxManager {
                             .zoom(14)
                             .build()), 4000);
 
-
             GeoJsonSource source = mMapboxMap.getStyle().getSourceAs(DESTINATION_SOURCE_ID);
             if (source != null) {
                 source.setGeoJson(Feature.fromGeometry(destinationPoint));
             }
-
-
         }
     }
 
@@ -267,17 +246,7 @@ public class MapboxManager {
 
     public void startNavigation() {
         Toast.makeText(mContext, R.string.msg_drive_mode, Toast.LENGTH_LONG).show();
-        storeDirectionsRouteValue();
-        Intent navigationIntent = new Intent(mContext, NavigationActivity.class);
-        mContext.startActivity(navigationIntent);
-    }
-
-    /*TODO Put in Pref util*/
-    private void storeDirectionsRouteValue() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(NavigationConstants.NAVIGATION_VIEW_ROUTE_KEY, mCurrentRoute.toJson());
-        editor.apply();
-        editor.commit();
+        PreferenceUtil.getInstance(mContext).setDirectionRoute(mCurrentRoute);
+        IntentUtil.launchActivityIntentForclass(mContext, NavigationActivity.class);
     }
 }

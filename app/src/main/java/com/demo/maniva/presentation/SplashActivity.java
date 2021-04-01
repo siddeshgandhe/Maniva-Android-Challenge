@@ -1,6 +1,5 @@
 package com.demo.maniva.presentation;
 
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.demo.maniva.R;
+import com.demo.maniva.utils.IntentUtil;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -58,7 +58,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void launchHomeActivity() {
-        startActivity(new Intent(this, HomeActivity.class));
+        IntentUtil.launchActivityIntentForclass(this, HomeActivity.class);
         finish();
     }
 
