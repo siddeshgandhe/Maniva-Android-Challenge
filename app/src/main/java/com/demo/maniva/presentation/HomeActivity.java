@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -43,6 +44,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Button mButtonStartNavigation;
     private Point mDestinationPoint;
     private MapboxManager mMapboxManager;
+
+    boolean doubleBackToExitPressedOnce = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,13 +99,19 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onBackPressed() {
 
         if (mDestinationPoint != null) {
+
             mDestinationPoint = null;
             mMapboxManager.resetMap();
             resetButton();
+        } else if (!doubleBackToExitPressedOnce) {
+
+            this.doubleBackToExitPressedOnce = true;
+            Toast.makeText(this, R.string.msg_back_again_to_exit, Toast.LENGTH_SHORT).show();
+            new Handler().postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
+
         } else {
             super.onBackPressed();
         }
-
     }
 
     @Override
