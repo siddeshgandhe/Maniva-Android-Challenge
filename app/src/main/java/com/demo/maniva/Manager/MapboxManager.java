@@ -275,5 +275,7 @@ public class MapboxManager {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(NavigationConstants.NAVIGATION_VIEW_ROUTE_KEY, mCurrentRoute.toJson());
+        editor.apply();
+        editor.commit();
     }
 }
