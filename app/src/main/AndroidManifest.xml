@@ -12,6 +12,9 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Maniva">
+        <activity android:name=".presentation.NavigationActivity"
+            android:screenOrientation="portrait"
+            android:supportsPictureInPicture="true"/>
         <activity
             android:name=".presentation.HomeActivity"
             android:screenOrientation="portrait" />

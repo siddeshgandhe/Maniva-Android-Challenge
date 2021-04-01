@@ -4,13 +4,16 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
+import android.preference.PreferenceManager;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import com.demo.maniva.BuildConfig;
 import com.demo.maniva.R;
+import com.demo.maniva.presentation.NavigationActivity;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineCallback;
 import com.mapbox.android.core.location.LocationEngineProvider;
@@ -33,14 +36,12 @@ import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.Style;
-
 import com.mapbox.mapboxsdk.plugins.places.autocomplete.PlaceAutocomplete;
 import com.mapbox.mapboxsdk.plugins.places.autocomplete.model.PlaceOptions;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
+import com.mapbox.services.android.navigation.v5.navigation.NavigationConstants;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 
 import retrofit2.Call;
@@ -264,11 +265,15 @@ public class MapboxManager {
     }
 
     public void startNavigation() {
-        boolean simulateRoute = true;
-        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
-                .directionsRoute(mCurrentRoute)
-                .shouldSimulateRoute(simulateRoute)
-                .build();
-        NavigationLauncher.startNavigation((Activity) mContext, options);
+        storeDirectionsRouteValue();
+        Intent navigationIntent = new Intent(mContext, NavigationActivity.class);
+        mContext.startActivity(navigationIntent);
+    }
+
+    /*TODO Put in Pref util*/
+    private void storeDirectionsRouteValue() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(NavigationConstants.NAVIGATION_VIEW_ROUTE_KEY, mCurrentRoute.toJson());
     }
 }
