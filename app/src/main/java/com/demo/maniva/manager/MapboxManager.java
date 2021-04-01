@@ -1,4 +1,4 @@
-package com.demo.maniva.Manager;
+package com.demo.maniva.manager;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -62,7 +62,6 @@ public class MapboxManager {
     private final Context mContext;
     private final PermissionsManager mPermissionsManager;
 
-    private LocationEngine locationEngine;
     private NavigationMapRoute mNavigationMapRoute;
     private DirectionsRoute mCurrentRoute;
     private Point mOriginPoint;
@@ -123,7 +122,7 @@ public class MapboxManager {
 
     @SuppressLint("MissingPermission")
     private void initLocationEngine() {
-        locationEngine = LocationEngineProvider.getBestLocationEngine(mContext);
+        LocationEngine locationEngine = LocationEngineProvider.getBestLocationEngine(mContext);
 
         LocationEngineRequest request = new LocationEngineRequest.Builder(1000)
                 .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
@@ -133,7 +132,7 @@ public class MapboxManager {
         locationEngine.getLastLocation(locationEngineCallback);
     }
 
-    LocationEngineCallback<LocationEngineResult> locationEngineCallback = new LocationEngineCallback<LocationEngineResult>() {
+    final LocationEngineCallback<LocationEngineResult> locationEngineCallback = new LocationEngineCallback<LocationEngineResult>() {
         @Override
         public void onSuccess(LocationEngineResult result) {
             if (mMapboxMap != null && result.getLastLocation() != null) {
@@ -176,7 +175,7 @@ public class MapboxManager {
                                     mNavigationMapRoute = new NavigationMapRoute(null, mMapView, mMapboxMap, R.style.NavigationMapRoute);
                                     mNavigationMapRoute.addRoute(mCurrentRoute);
                                 } catch (Exception e) {
-
+                                   // Todo add callback and toast
                                 }
                             }
                         }
@@ -247,6 +246,6 @@ public class MapboxManager {
     public void startNavigation() {
         Toast.makeText(mContext, R.string.msg_drive_mode, Toast.LENGTH_LONG).show();
         PreferenceUtil.getInstance(mContext).setDirectionRoute(mCurrentRoute);
-        IntentUtil.launchActivityIntentForclass(mContext, NavigationActivity.class);
+        IntentUtil.launchActivityIntentForClass(mContext, NavigationActivity.class);
     }
 }

@@ -15,7 +15,7 @@ import com.demo.maniva.utils.IntentUtil;
 
 public class SplashActivity extends AppCompatActivity {
 
-    public static int SPLASH_TIME_OUT = 2000;
+    public static final int SPLASH_TIME_OUT = 2000;
     private final static int REQUEST_CODE_ASK_PERMISSIONS = 1002;
     private final Runnable runnable = this::checkPermissionForNetworkState;
 
@@ -58,7 +58,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void launchHomeActivity() {
-        IntentUtil.launchActivityIntentForclass(this, HomeActivity.class);
+        IntentUtil.launchActivityIntentForClass(this, HomeActivity.class);
         finish();
     }
 

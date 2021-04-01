@@ -26,7 +26,7 @@ public class IntentUtil {
                 .build((Activity) context);
     }
 
-    public static void launchActivityIntentForclass(Context context, Class clx) {
+    public static void launchActivityIntentForClass(Context context, Class clx) {
         Intent navigationIntent = new Intent(context, clx);
         context.startActivity(navigationIntent);
     }

@@ -15,8 +15,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.demo.maniva.BuildConfig;
-import com.demo.maniva.Manager.MapboxManager;
 import com.demo.maniva.R;
+import com.demo.maniva.manager.MapboxManager;
 import com.demo.maniva.utils.IntentUtil;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
@@ -31,9 +31,9 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.plugins.places.autocomplete.PlaceAutocomplete;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+import java.util.List;
 
 public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMapClickListener, PermissionsListener {
 
@@ -116,7 +116,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NotNull Bundle outState) {
         super.onSaveInstanceState(outState);
         mMapView.onSaveInstanceState(outState);
     }
@@ -149,9 +149,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMapboxManager.initMapbox();
         mapboxMap.addOnMapClickListener(HomeActivity.this);
         mButtonStartNavigation = findViewById(R.id.startButton);
-        mButtonStartNavigation.setOnClickListener(v -> {
-            mMapboxManager.startNavigation();
-        });
+        mButtonStartNavigation.setOnClickListener(v -> mMapboxManager.startNavigation());
 
         initSearchFab();
     }
@@ -202,9 +200,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void initSearchFab() {
-        findViewById(R.id.fab_location_search).setOnClickListener(view -> {
-            startActivityForResult(IntentUtil.getMapboxAutoCompleteSearchIntent(this), REQUEST_CODE_AUTOCOMPLETE);
-        });
+        findViewById(R.id.fab_location_search).setOnClickListener(view -> startActivityForResult(IntentUtil.getMapboxAutoCompleteSearchIntent(this), REQUEST_CODE_AUTOCOMPLETE));
     }
 
     void resetButton() {
@@ -218,11 +214,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         builder.setTitle(R.string.title_enable_location);
         builder.setMessage(R.string.msg_enable_location);
         builder.setInverseBackgroundForced(true);
-        builder.setPositiveButton(R.string.label_Enable, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                IntentUtil.launchActivityForAction(HomeActivity.this, android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            }
-        });
+        builder.setPositiveButton(R.string.label_Enable, (dialog, which) -> IntentUtil.launchActivityForAction(HomeActivity.this, android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
         builder.setCancelable(false);
         AlertDialog alert = builder.create();
         alert.show();

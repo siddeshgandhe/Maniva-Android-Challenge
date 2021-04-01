@@ -20,6 +20,8 @@ import com.mapbox.services.android.navigation.ui.v5.OnNavigationReadyCallback;
 import com.mapbox.services.android.navigation.ui.v5.listeners.NavigationListener;
 import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigationOptions;
 
+import org.jetbrains.annotations.NotNull;
+
 
 public class NavigationActivity extends AppCompatActivity implements OnNavigationReadyCallback,
         NavigationListener {
@@ -64,7 +66,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NotNull Bundle outState) {
         mNavigationView.onSaveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
@@ -128,7 +130,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
             int width = size.x;
             int height = size.y;
             Rational aspectRatio = new Rational(width, height);
-            PictureInPictureParams params = null;
+            PictureInPictureParams params;
             params = new PictureInPictureParams.Builder()
                     .setAspectRatio(aspectRatio).build();
             enterPictureInPictureMode(params);
