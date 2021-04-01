@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.demo.maniva.R;
+import com.demo.maniva.listener.MapboxListener;
 import com.demo.maniva.presentation.NavigationActivity;
 import com.demo.maniva.utils.IntentUtil;
 import com.demo.maniva.utils.PreferenceUtil;
@@ -17,6 +18,7 @@ import com.mapbox.android.core.location.LocationEngineCallback;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.location.LocationEngineRequest;
 import com.mapbox.android.core.location.LocationEngineResult;
+import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
@@ -39,6 +41,8 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -49,7 +53,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacem
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
-public class MapboxManager {
+public class MapboxManager implements PermissionsListener {
 
     public static final String GEO_JSON_SOURCE_LAYER_ID = "geojsonSourceLayerId";
     public static final String DESTINATION_SYMBOL_LAYER_ID = "destination-symbol-layer-id";
@@ -66,13 +70,29 @@ public class MapboxManager {
     private DirectionsRoute mCurrentRoute;
     private Point mOriginPoint;
 
+    private final MapboxListener mMapboxListener;
 
-    public MapboxManager(MapView mapView, MapboxMap mapboxMap, PermissionsManager permissionsManager, Context context) {
+
+    public MapboxManager(MapView mapView, MapboxMap mapboxMap, Context context, MapboxListener mapboxListener) {
         this.mMapboxMap = mapboxMap;
         this.mContext = context;
         this.mMapView = mapView;
-        //TODO Move it here completely and callback to home
-        this.mPermissionsManager = permissionsManager;
+        this.mMapboxListener = mapboxListener;
+        mPermissionsManager = new PermissionsManager(this);
+    }
+
+    @Override
+    public void onExplanationNeeded(List<String> permissionsToExplain) {
+        mMapboxListener.onExplanationNeeded(permissionsToExplain);
+    }
+
+    @Override
+    public void onPermissionResult(boolean granted) {
+        if (granted) {
+            enableLocationComponent();
+        } else {
+            mMapboxListener.onPermissionDenied();
+        }
     }
 
 
@@ -80,7 +100,7 @@ public class MapboxManager {
         mMapboxMap.getUiSettings().setZoomGesturesEnabled(true);
         mMapboxMap.getUiSettings().setQuickZoomGesturesEnabled(true);
         mMapboxMap.setStyle(mContext.getString(R.string.navigation_guidance_day), style -> {
-            enableLocationComponent(style);
+            enableLocationComponent();
             addDestinationIconSymbolLayer(style);
             setUpSource(style);
             setupLayer(style);
@@ -88,35 +108,37 @@ public class MapboxManager {
     }
 
     @SuppressWarnings({"MissingPermission"})
-    public void enableLocationComponent(@NonNull Style loadedMapStyle) {
-        if (PermissionsManager.areLocationPermissionsGranted(mContext)) {
+    public void enableLocationComponent() {
+        if (mMapboxMap != null) {
+            if (PermissionsManager.areLocationPermissionsGranted(mContext)) {
 
-            // Get an instance of the component
-            LocationComponent locationComponent = mMapboxMap.getLocationComponent();
+                // Get an instance of the component
+                LocationComponent locationComponent = mMapboxMap.getLocationComponent();
 
-            // Set the LocationComponent activation options
-            LocationComponentActivationOptions locationComponentActivationOptions =
-                    LocationComponentActivationOptions.builder(mContext, loadedMapStyle)
-                            .useDefaultLocationEngine(false)
-                            .build();
+                // Set the LocationComponent activation options
+                LocationComponentActivationOptions locationComponentActivationOptions =
+                        LocationComponentActivationOptions.builder(mContext, mMapboxMap.getStyle())
+                                .useDefaultLocationEngine(false)
+                                .build();
 
-            // Activate with the LocationComponentActivationOptions object
-            locationComponent.activateLocationComponent(locationComponentActivationOptions);
+                // Activate with the LocationComponentActivationOptions object
+                locationComponent.activateLocationComponent(locationComponentActivationOptions);
 
-            // Enable to make component visible
-            locationComponent.setLocationComponentEnabled(true);
+                // Enable to make component visible
+                locationComponent.setLocationComponentEnabled(true);
 
-            // Set the component's camera mode
-            locationComponent.setCameraMode(CameraMode.TRACKING);
+                // Set the component's camera mode
+                locationComponent.setCameraMode(CameraMode.TRACKING);
 
-            // Set the component's render mode
-            locationComponent.setRenderMode(RenderMode.COMPASS);
+                // Set the component's render mode
+                locationComponent.setRenderMode(RenderMode.COMPASS);
 
-            initLocationEngine();
+                initLocationEngine();
 
 
-        } else {
-            mPermissionsManager.requestLocationPermissions((Activity) mContext);
+            } else {
+                mPermissionsManager.requestLocationPermissions((Activity) mContext);
+            }
         }
     }
 
@@ -144,7 +166,7 @@ public class MapboxManager {
 
         @Override
         public void onFailure(@NonNull Exception exception) {
-            /*TODO send call back and show toast on activity*/
+            mMapboxListener.locationEngineError();
         }
     };
 
@@ -175,13 +197,14 @@ public class MapboxManager {
                                     mNavigationMapRoute = new NavigationMapRoute(null, mMapView, mMapboxMap, R.style.NavigationMapRoute);
                                     mNavigationMapRoute.addRoute(mCurrentRoute);
                                 } catch (Exception e) {
-                                   // Todo add callback and toast
+                                    mMapboxListener.onRouteError();
                                 }
                             }
                         }
 
                         @Override
                         public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
+                            mMapboxListener.onRouteError();
                         }
                     });
         }
@@ -247,5 +270,16 @@ public class MapboxManager {
         Toast.makeText(mContext, R.string.msg_drive_mode, Toast.LENGTH_LONG).show();
         PreferenceUtil.getInstance(mContext).setDirectionRoute(mCurrentRoute);
         IntentUtil.launchActivityIntentForClass(mContext, NavigationActivity.class);
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        mPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    public void drawMarkerForDestination(Point mDestinationPoint) {
+        GeoJsonSource source = mMapboxMap.getStyle().getSourceAs(MapboxManager.DESTINATION_SOURCE_ID);
+        if (source != null) {
+            source.setGeoJson(Feature.fromGeometry(mDestinationPoint));
+        }
     }
 }

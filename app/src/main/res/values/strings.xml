@@ -9,4 +9,6 @@
     <string name="err_permission_denied">READ_PHONE_STATE Permission Denied</string>
     <string name="msg_back_again_to_exit">Please click BACK again to exit.</string>
     <string name="msg_drive_mode">Starting Navigation with Drive mode</string>
+    <string name="error_location_not_found">Error while getting your current location</string>
+    <string name="err_route_not_found">Unable to get route information</string>
 </resources>
