@@ -55,11 +55,9 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class MapboxManager implements PermissionsListener {
 
-    public static final String GEO_JSON_SOURCE_LAYER_ID = "geojsonSourceLayerId";
     public static final String DESTINATION_SYMBOL_LAYER_ID = "destination-symbol-layer-id";
     public static final String DESTINATION_ICON_ID = "destination-icon-id";
     public static final String DESTINATION_SOURCE_ID = "destination-source-id";
-    public static final String SYMBOL_LAYER_ID = "SYMBOL_LAYER_ID";
 
     private final MapboxMap mMapboxMap;
     private final MapView mMapView;
@@ -102,8 +100,6 @@ public class MapboxManager implements PermissionsListener {
         mMapboxMap.setStyle(mContext.getString(R.string.navigation_guidance_day), style -> {
             enableLocationComponent();
             addDestinationIconSymbolLayer(style);
-            setUpSource(style);
-            setupLayer(style);
         });
     }
 
@@ -111,30 +107,18 @@ public class MapboxManager implements PermissionsListener {
     public void enableLocationComponent() {
         if (mMapboxMap != null) {
             if (PermissionsManager.areLocationPermissionsGranted(mContext)) {
-
-                // Get an instance of the component
                 LocationComponent locationComponent = mMapboxMap.getLocationComponent();
 
-                // Set the LocationComponent activation options
                 LocationComponentActivationOptions locationComponentActivationOptions =
                         LocationComponentActivationOptions.builder(mContext, mMapboxMap.getStyle())
                                 .useDefaultLocationEngine(false)
                                 .build();
 
-                // Activate with the LocationComponentActivationOptions object
                 locationComponent.activateLocationComponent(locationComponentActivationOptions);
-
-                // Enable to make component visible
                 locationComponent.setLocationComponentEnabled(true);
-
-                // Set the component's camera mode
                 locationComponent.setCameraMode(CameraMode.TRACKING);
-
-                // Set the component's render mode
                 locationComponent.setRenderMode(RenderMode.COMPASS);
-
                 initLocationEngine();
-
 
             } else {
                 mPermissionsManager.requestLocationPermissions((Activity) mContext);
@@ -152,14 +136,12 @@ public class MapboxManager implements PermissionsListener {
                     .getRoute(new Callback<DirectionsResponse>() {
                         @Override
                         public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
-                            // You can get the generic HTTP info about the response
                             if (response.body() == null) {
                                 return;
                             } else if (response.body().routes().size() < 1) {
                                 return;
                             }
                             mCurrentRoute = response.body().routes().get(0);
-                            // Draw the route on the map
                             if (mNavigationMapRoute != null) {
                                 mNavigationMapRoute.updateRouteVisibilityTo(false);
                                 mNavigationMapRoute.updateRouteArrowVisibilityTo(false);
@@ -185,7 +167,6 @@ public class MapboxManager implements PermissionsListener {
     public void drawMarkerFromSelectedAddress(CarmenFeature selectedCarmenFeature, Point destinationPoint) {
         Style style = mMapboxMap.getStyle();
         if (style != null) {
-            // Move map camera to the selected location
             mMapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                     new CameraPosition.Builder()
                             .target(new LatLng(((Point) selectedCarmenFeature.geometry()).latitude(),
@@ -269,18 +250,5 @@ public class MapboxManager implements PermissionsListener {
                 iconIgnorePlacement(true)
         );
         loadedMapStyle.addLayer(destinationSymbolLayer);
-    }
-
-
-    private void setUpSource(@NonNull Style loadedMapStyle) {
-        loadedMapStyle.addSource(new GeoJsonSource(GEO_JSON_SOURCE_LAYER_ID));
-    }
-
-    private void setupLayer(@NonNull Style loadedMapStyle) {
-        String symbolIconId = "symbolIconId";
-        loadedMapStyle.addLayer(new SymbolLayer(SYMBOL_LAYER_ID, GEO_JSON_SOURCE_LAYER_ID).withProperties(
-                iconImage(symbolIconId),
-                iconOffset(new Float[]{0f, -8f})
-        ));
     }
 }

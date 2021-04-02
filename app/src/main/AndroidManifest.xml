@@ -18,7 +18,7 @@
                 "screenSize|smallestScreenSize|screenLayout|orientation"
             android:supportsPictureInPicture="true"
             android:launchMode="singleTask"
-            android:taskAffinity=".YourVideoPlayerActivityTask"
+            android:taskAffinity=".NavigationAcvitityTask"
             android:excludeFromRecents="true"
             android:noHistory="true"
             android:autoRemoveFromRecents="true"

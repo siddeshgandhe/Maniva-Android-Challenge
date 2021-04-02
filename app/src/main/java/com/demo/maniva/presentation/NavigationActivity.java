@@ -41,6 +41,12 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        initialize();
+    }
+
+    @Override
     public void onStart() {
         super.onStart();
         mNavigationView.onStart();
@@ -60,7 +66,6 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     @Override
     public void onBackPressed() {
-        // If the navigation view didn't need to do anything, call super
         if (!mNavigationView.onBackPressed()) {
             super.onBackPressed();
         }
@@ -118,7 +123,19 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     @Override
     public void onNavigationRunning() {
-        // Intentionally empty
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+
+        if (isInPictureInPictureMode && getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        } else {
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().show();
+            }
+        }
     }
 
     @Override
@@ -138,18 +155,6 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         }
     }
 
-    @Override
-    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
-
-        if (isInPictureInPictureMode && getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        } else {
-            if (getSupportActionBar() != null) {
-                getSupportActionBar().show();
-            }
-        }
-    }
 
     private void initialize() {
         this.mRoute = PreferenceUtil.getInstance(this).getDirectionRoute();
