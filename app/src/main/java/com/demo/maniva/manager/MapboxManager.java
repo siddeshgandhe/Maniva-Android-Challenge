@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.BitmapFactory;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -51,7 +50,6 @@ import static android.os.Looper.getMainLooper;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacement;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class MapboxManager implements PermissionsListener {
 
@@ -193,7 +191,6 @@ public class MapboxManager implements PermissionsListener {
     }
 
     public void startNavigation() {
-        Toast.makeText(mContext, R.string.msg_drive_mode, Toast.LENGTH_LONG).show();
         PreferenceUtil.getInstance(mContext).setDirectionRoute(mCurrentRoute);
         IntentUtil.launchActivityIntentForClass(mContext, NavigationActivity.class);
     }

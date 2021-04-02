@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.demo.maniva.BuildConfig;
@@ -31,9 +32,14 @@ public class IntentUtil {
         context.startActivity(navigationIntent);
     }
 
-    public static void launchActivityForAction(Context context, String action){
+    public static void launchActivityForAction(Context context, String action) {
         Intent intent = new Intent(action);
         intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
+    }
+
+    public static void startActivityByClearingPreviousTask(AppCompatActivity activity, Class clx) {
+        activity.finishAndRemoveTask();
+        activity.startActivity(new Intent(activity, clx));
     }
 }
