@@ -11,7 +11,7 @@ public class PermissionManager {
 
     public static final int REQUEST_CODE_ASK_PERMISSIONS = 1002;
 
-    private PermissionListener mPermissionListener;
+    private final PermissionListener mPermissionListener;
 
     public PermissionManager(PermissionListener mPermissionListener) {
         this.mPermissionListener = mPermissionListener;
