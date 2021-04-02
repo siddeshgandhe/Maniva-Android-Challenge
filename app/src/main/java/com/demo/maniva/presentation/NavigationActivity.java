@@ -122,7 +122,21 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     @Override
-    public void onNavigationRunning() { }
+    public void onNavigationRunning() {
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+
+        if (isInPictureInPictureMode && getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        } else {
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().show();
+            }
+        }
+    }
 
     @Override
     protected void onUserLeaveHint() {
@@ -141,18 +155,6 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         }
     }
 
-    @Override
-    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
-
-        if (isInPictureInPictureMode && getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        } else {
-            if (getSupportActionBar() != null) {
-                getSupportActionBar().show();
-            }
-        }
-    }
 
     private void initialize() {
         this.mRoute = PreferenceUtil.getInstance(this).getDirectionRoute();
