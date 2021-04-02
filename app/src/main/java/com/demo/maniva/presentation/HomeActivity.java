@@ -212,9 +212,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void checkGpsDeviceSettingEnabled() {
         LocationManager mlocManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        boolean enabled = mlocManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-                mlocManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ||
-                mlocManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER);
+        boolean enabled = mlocManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if (!enabled) {
             showDialogGPS();
         } else {
