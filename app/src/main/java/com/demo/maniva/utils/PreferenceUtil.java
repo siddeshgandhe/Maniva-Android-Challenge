@@ -34,12 +34,11 @@ public class PreferenceUtil {
     }
 
     public void setDirectionRoute(DirectionsRoute directionsRoute) {
-        String value = "";
-        if (directionsRoute != null) {
-            value = directionsRoute.toJson();
-        }
-        editor.putString(NavigationConstants.NAVIGATION_VIEW_ROUTE_KEY, value);
-        editor.apply();
-        editor.commit();
+        try {
+            String value = directionsRoute.toJson();
+            editor.putString(NavigationConstants.NAVIGATION_VIEW_ROUTE_KEY, value);
+            editor.apply();
+            editor.commit();
+        } catch (NullPointerException exception) { }
     }
 }

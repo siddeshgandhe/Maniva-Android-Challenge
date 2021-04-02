@@ -46,11 +46,9 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void createSplashScreenAppearance() {
-        // Hide the status bar.
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
-        // Override animation
         overridePendingTransition(0, 0);
     }
 
@@ -59,7 +57,6 @@ public class SplashActivity extends AppCompatActivity {
         handler.postDelayed(runnable, SPLASH_TIME_OUT);
     }
 
-    /*launch Home screen*/
     private void checkPermissionForNetworkState() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

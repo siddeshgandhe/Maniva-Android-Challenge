@@ -154,11 +154,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE_AUTOCOMPLETE) {
 
-            // Retrieve selected location's CarmenFeature
             CarmenFeature selectedCarmenFeature = PlaceAutocomplete.getPlace(data);
 
-            // Create a new FeatureCollection and add a new Feature to it using selectedCarmenFeature above.
-            // Then retrieve and update the source designated for showing a selected location's symbol layer icon
             mDestinationPoint = Point.fromLngLat(((Point) selectedCarmenFeature.geometry()).longitude(), ((Point) selectedCarmenFeature.geometry()).latitude());
             mMapboxManager.drawMarkerFromSelectedAddress(selectedCarmenFeature, mDestinationPoint);
             mMapboxManager.getRoute(mDestinationPoint);
@@ -215,7 +212,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void checkGpsDeviceSettingEnabled() {
         LocationManager mlocManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        boolean enabled = mlocManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || mlocManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ||
+        boolean enabled = mlocManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                mlocManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ||
                 mlocManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER);
         if (!enabled) {
             showDialogGPS();

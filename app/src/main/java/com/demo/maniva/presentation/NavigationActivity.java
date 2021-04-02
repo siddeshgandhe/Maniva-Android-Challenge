@@ -41,6 +41,12 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        initialize();
+    }
+
+    @Override
     public void onStart() {
         super.onStart();
         mNavigationView.onStart();
@@ -60,7 +66,6 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     @Override
     public void onBackPressed() {
-        // If the navigation view didn't need to do anything, call super
         if (!mNavigationView.onBackPressed()) {
             super.onBackPressed();
         }
@@ -117,9 +122,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     @Override
-    public void onNavigationRunning() {
-        // Intentionally empty
-    }
+    public void onNavigationRunning() { }
 
     @Override
     protected void onUserLeaveHint() {
