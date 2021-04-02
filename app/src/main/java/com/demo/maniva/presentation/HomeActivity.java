@@ -18,6 +18,7 @@ import com.demo.maniva.R;
 import com.demo.maniva.listener.MapboxListener;
 import com.demo.maniva.manager.MapboxManager;
 import com.demo.maniva.utils.IntentUtil;
+import com.demo.maniva.utils.UiUtility;
 import com.mapbox.api.geocoding.v5.models.CarmenFeature;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
@@ -100,7 +101,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (!mDoubleBackToExitPressedOnce) {
 
             this.mDoubleBackToExitPressedOnce = true;
-            Toast.makeText(this, R.string.msg_back_again_to_exit, Toast.LENGTH_SHORT).show();
+            UiUtility.showToast(this, getString(R.string.msg_back_again_to_exit));
             new Handler().postDelayed(() -> mDoubleBackToExitPressedOnce = false, 2000);
 
         } else {
@@ -121,7 +122,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(this, R.string.user_location_permission_explanation, Toast.LENGTH_LONG).show();
+        UiUtility.showToast(this, getString(R.string.user_location_permission_explanation));
+
     }
 
 
@@ -131,7 +133,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMapboxManager.initMapbox();
         mapboxMap.addOnMapClickListener(HomeActivity.this);
         mButtonStartNavigation = findViewById(R.id.startButton);
-        mButtonStartNavigation.setOnClickListener(v -> mMapboxManager.startNavigation());
+        mButtonStartNavigation.setOnClickListener(v -> {
+            UiUtility.showToast(this, getString(R.string.msg_drive_mode), Toast.LENGTH_LONG);
+            mMapboxManager.startNavigation();
+        });
 
         initSearchFab();
     }
@@ -167,18 +172,18 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onPermissionDenied() {
-        Toast.makeText(this, R.string.user_location_permission_not_granted, Toast.LENGTH_LONG).show();
+        UiUtility.showToast(this, getString(R.string.user_location_permission_not_granted));
         finish();
     }
 
     @Override
     public void onLocationEngineError() {
-        Toast.makeText(this, R.string.error_location_not_found, Toast.LENGTH_LONG).show();
+        UiUtility.showToast(this, getString(R.string.error_location_not_found));
     }
 
     @Override
     public void onRouteError() {
-        Toast.makeText(this, R.string.err_route_not_found, Toast.LENGTH_LONG).show();
+        UiUtility.showToast(this, getString(R.string.err_route_not_found));
         mButtonStartNavigation.setEnabled(false);
         mButtonStartNavigation.setBackgroundResource(R.color.mapboxGrayLight);
     }

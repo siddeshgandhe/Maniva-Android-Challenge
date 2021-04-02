@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.demo.maniva.R;
+import com.demo.maniva.utils.IntentUtil;
 import com.demo.maniva.utils.PreferenceUtil;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.services.android.navigation.ui.v5.NavigationView;
@@ -29,6 +30,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     private NavigationView mNavigationView;
     private DirectionsRoute mRoute;
+    private boolean mBackstackLost = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -128,13 +130,8 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     @Override
     public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode);
-
-        if (isInPictureInPictureMode && getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        } else {
-            if (getSupportActionBar() != null) {
-                getSupportActionBar().show();
-            }
+        if (!isInPictureInPictureMode) {
+            mBackstackLost = true;
         }
     }
 
@@ -155,6 +152,14 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         }
     }
 
+    @Override
+    public void finish() {
+        if (mBackstackLost) {
+            IntentUtil.startActivityByClearingPreviousTask(this, HomeActivity.class);
+        } else {
+            super.finish();
+        }
+    }
 
     private void initialize() {
         this.mRoute = PreferenceUtil.getInstance(this).getDirectionRoute();

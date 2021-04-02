@@ -3,7 +3,6 @@ package com.demo.maniva.presentation;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +11,7 @@ import com.demo.maniva.R;
 import com.demo.maniva.listener.PermissionListener;
 import com.demo.maniva.manager.PermissionManager;
 import com.demo.maniva.utils.IntentUtil;
+import com.demo.maniva.utils.UiUtility;
 
 public class SplashActivity extends AppCompatActivity implements PermissionListener {
 
@@ -41,7 +41,7 @@ public class SplashActivity extends AppCompatActivity implements PermissionListe
 
     @Override
     public void onPermissionDenied() {
-        Toast.makeText(this, R.string.err_permission_denied, Toast.LENGTH_LONG).show();
+        UiUtility.showToast(this, getString(R.string.err_permission_denied));
         finish();
     }
 
