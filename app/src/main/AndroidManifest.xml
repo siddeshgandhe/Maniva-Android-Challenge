@@ -25,6 +25,7 @@
             />
         <activity
             android:name=".presentation.HomeActivity"
+            android:launchMode="singleInstance"
             android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.SplashActivity"
