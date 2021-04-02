@@ -40,7 +40,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Point mDestinationPoint;
     private MapboxManager mMapboxManager;
 
-    boolean mDoubleBackToExitPressedOnce = false;
+    private boolean mDoubleBackToExitPressedOnce = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
